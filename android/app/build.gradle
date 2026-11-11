@@ -85,9 +85,12 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
+    // `namespace` is the Kotlin/Java source package (MainActivity, MainApplication, ...).
+    // It is deliberately left as com.pocketpal so no source files need to move;
+    // the installed app's package ID is the applicationId below.
     namespace "com.pocketpal"
     defaultConfig {
-        applicationId "com.pocketpalai"
+        applicationId "com.benwalker.studymate"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 160
@@ -151,7 +154,7 @@ android {
         releaseE2e {
             // E2E buildType: inherits 95% of release (Hermes, minify toggle,
             // proguard rules), then overrides:
-            //   1. debuggable=true so `adb shell run-as com.pocketpalai.e2e`
+            //   1. debuggable=true so `adb shell run-as com.benwalker.studymate.e2e`
             //      works for the benchmark-matrix preseed workflow.
             //   2. Debug signing — E2E builds are never shipped to stores.
             //   3. matchingFallbacks so dependencies resolve to their release
@@ -174,12 +177,12 @@ android {
     productFlavors {
         prod {
             dimension "distribution"
-            // applicationId stays as defaultConfig: com.pocketpalai
+            // applicationId stays as defaultConfig: com.benwalker.studymate
         }
         e2e {
             dimension "distribution"
             applicationIdSuffix ".e2e"
-            // Effective applicationId: com.pocketpalai.e2e
+            // Effective applicationId: com.benwalker.studymate.e2e
             // Separate sandbox; installs side-by-side with prod.
         }
     }
