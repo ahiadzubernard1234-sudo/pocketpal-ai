@@ -1,6 +1,7 @@
 import type {Pal} from '../types/pal';
 import type {Model} from './types';
 import {generateFinalSystemPrompt} from './palshub-template-parser';
+import {STUDYMATE_TUTOR_PROMPT} from './studymatePrompt';
 
 export interface SystemPromptDependencies {
   pal?: Pal | null;
@@ -11,7 +12,7 @@ export interface SystemPromptDependencies {
  * Resolves the system prompt based on priority:
  * 1. Pal's system prompt (with parameter rendering if needed)
  * 2. Fallback to model's chat template system prompt
- * 3. Empty string if neither exists
+ * 3. StudyMate's default tutor prompt
  */
 export function resolveSystemPrompt(
   dependencies: SystemPromptDependencies,
@@ -33,8 +34,8 @@ export function resolveSystemPrompt(
     return model.chatTemplate.systemPrompt;
   }
 
-  // Priority 3: Empty string
-  return '';
+  // Priority 3: StudyMate default tutor prompt
+  return STUDYMATE_TUTOR_PROMPT;
 }
 
 type ChatMessage = {role: string; content?: unknown};
