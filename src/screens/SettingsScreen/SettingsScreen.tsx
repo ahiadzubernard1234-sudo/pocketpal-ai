@@ -51,6 +51,7 @@ import {AccountCard} from './AccountCard';
 import {LocalApiServerCard} from './LocalApiServerCard';
 import {PurchasesCard} from './PurchasesCard';
 import {AdvancedUnlockDialog} from './AdvancedUnlockDialog';
+import {HFModelSearch} from '../ModelsScreen/HFModelSearch';
 
 import {useTheme} from '../../hooks';
 
@@ -118,6 +119,8 @@ export const SettingsScreen: React.FC = observer(() => {
   // Advanced settings stay greyed out until the access code is entered.
   const [advancedUnlocked, setAdvancedUnlocked] = useState(false);
   const [showUnlockDialog, setShowUnlockDialog] = useState(false);
+  // Model downloads (Hugging Face search) live under Advanced settings.
+  const [showModelDownloads, setShowModelDownloads] = useState(false);
   const inputRef = useRef<TextInputInstance>(null);
   const keyCacheMenu = useMenuAnchor();
   const valueCacheMenu = useMenuAnchor();
@@ -521,6 +524,31 @@ export const SettingsScreen: React.FC = observer(() => {
                   setShowAdvancedSettings(!showAdvancedSettings);
                 }}>
                 <View style={styles.advancedSettingsContent}>
+                  {/* Download models (moved here from the Models screen) */}
+                  <View style={styles.settingItemContainer}>
+                    <View style={styles.switchContainer}>
+                      <View style={styles.textContainer}>
+                        <Text variant="titleMedium" style={styles.textLabel}>
+                          Download models
+                        </Text>
+                        <Text
+                          variant="labelSmall"
+                          style={styles.textDescription}>
+                          Browse and download models from Hugging Face. This
+                          needs an internet connection.
+                        </Text>
+                      </View>
+                      <Button
+                        mode="outlined"
+                        testID="advanced-download-models-button"
+                        onPress={() => setShowModelDownloads(true)}
+                        style={styles.menuButton}>
+                        Browse
+                      </Button>
+                    </View>
+                  </View>
+                  <Divider />
+
                   {/* Batch Size Slider */}
                   <View style={styles.settingItemContainer}>
                     <InputSlider
@@ -1775,6 +1803,10 @@ export const SettingsScreen: React.FC = observer(() => {
           setShowUnlockDialog(false);
           setShowAdvancedSettings(true);
         }}
+      />
+      <HFModelSearch
+        visible={showModelDownloads}
+        onDismiss={() => setShowModelDownloads(false)}
       />
       {showAuthSheet && (
         <AuthSheet
