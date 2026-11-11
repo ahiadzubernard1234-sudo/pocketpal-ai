@@ -69,6 +69,7 @@ import {
   type AgentUiState,
   type TokenDelta,
 } from '../services/agent';
+import {buildRagFragment} from '../rag/ragPrompt';
 // Helper function to prepare completion parameters using OpenAI-compatible
 // messages API. Creates the empty `assistant_turn` row up-front so the
 // active-vs-persisted predicate sees the right "last message" before the
@@ -159,10 +160,23 @@ const prepareCompletion = async ({
   const sessionToolNames = (
     (sessionCompletionSettings?.tools as ToolDefinition[] | undefined) ?? []
   ).map(tool => tool.function?.name ?? '');
-  const systemPromptFragments = collectSystemPromptFragments(sessionToolNames, {
+  const talentFragments = collectSystemPromptFragments(sessionToolNames, {
     now: new Date(),
     maxToolTurns: DEFAULT_MAX_TURNS,
   });
+
+  // StudyMate RAG: look up curriculum notes that match the student's question
+  // and add them to the system prompt (model input only, never shown in chat).
+  // Retrieval must never break a chat, so any failure just skips the notes.
+  let ragFragment: string | null = null;
+  try {
+    ragFragment = buildRagFragment(message.text ?? '');
+  } catch (ragError) {
+    console.warn('[rag] retrieval failed; continuing without notes', ragError);
+  }
+  const systemPromptFragments = ragFragment
+    ? [...talentFragments, ragFragment]
+    : talentFragments;
 
   const messages = assembleMessages(systemMessages, systemPromptFragments, [
     ...chatMessages,
