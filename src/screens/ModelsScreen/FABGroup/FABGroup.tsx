@@ -1,4 +1,4 @@
-import {Image} from 'react-native';
+import {Image, StyleProp, ViewStyle} from 'react-native';
 import React, {useContext, useMemo, useState} from 'react';
 
 import {FAB} from 'react-native-paper';
@@ -9,7 +9,13 @@ import {CloudPlusIcon} from '../../../assets/icons';
 import {createStyles} from './styles';
 
 interface FABGroupProps {
-  onAddHFModel: () => void;
+  /**
+   * Opens the Hugging Face model search (model downloads).
+   * StudyMate hides this button from the Models screen: downloads live under
+   * Settings > Advanced settings (behind the access code). When omitted, the
+   * button is not shown.
+   */
+  onAddHFModel?: () => void;
   onAddLocalModel: () => void;
   onAddRemoteModel: () => void;
   onManageServers?: () => void;
@@ -23,6 +29,15 @@ type IconComponentProps = {
   size: number;
   allowFontScaling?: boolean;
   color: string;
+};
+
+type FabAction = {
+  testID: string;
+  icon: string | ((props: IconComponentProps) => React.ReactNode);
+  label: string;
+  accessibilityLabel: string;
+  style: StyleProp<ViewStyle>;
+  onPress: () => void;
 };
 
 const HFIcon = (_props: IconComponentProps): React.ReactNode => (
@@ -48,8 +63,10 @@ export const FABGroup: React.FC<FABGroupProps> = ({
   const onStateChange = ({open: isOpen}) => setOpen(isOpen);
 
   const actions = useMemo(() => {
-    const items = [
-      {
+    const items: FabAction[] = [];
+
+    if (onAddHFModel) {
+      items.push({
         testID: 'hf-fab',
         icon: HFIcon,
         label: l10n.models.buttons.addFromHuggingFace,
@@ -58,7 +75,10 @@ export const FABGroup: React.FC<FABGroupProps> = ({
         onPress: () => {
           onAddHFModel();
         },
-      },
+      });
+    }
+
+    items.push(
       {
         testID: 'local-fab',
         icon: 'folder-plus',
@@ -79,7 +99,8 @@ export const FABGroup: React.FC<FABGroupProps> = ({
           onAddRemoteModel();
         },
       },
-    ];
+    );
+
     if (hasServers && onManageServers) {
       items.push({
         testID: 'manage-servers-fab',
