@@ -50,6 +50,7 @@ import {AuthSheet} from '../../components/PalsHub';
 import {AccountCard} from './AccountCard';
 import {LocalApiServerCard} from './LocalApiServerCard';
 import {PurchasesCard} from './PurchasesCard';
+import {AdvancedUnlockDialog} from './AdvancedUnlockDialog';
 
 import {useTheme} from '../../hooks';
 
@@ -114,6 +115,9 @@ export const SettingsScreen: React.FC = observer(() => {
   );
   const [isValidInput, setIsValidInput] = useState(true);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
+  // Advanced settings stay greyed out until the access code is entered.
+  const [advancedUnlocked, setAdvancedUnlocked] = useState(false);
+  const [showUnlockDialog, setShowUnlockDialog] = useState(false);
   const inputRef = useRef<TextInputInstance>(null);
   const keyCacheMenu = useMenuAnchor();
   const valueCacheMenu = useMenuAnchor();
@@ -491,14 +495,31 @@ export const SettingsScreen: React.FC = observer(() => {
                 </Text>
               </View>
 
-              {/* Advanced Settings */}
+              {/* Advanced Settings (greyed out until unlocked with the access code) */}
               <List.Accordion
                 testID="advanced-settings-accordion"
                 title={l10n.settings.advancedSettings}
-                titleStyle={styles.accordionTitle}
-                style={styles.advancedAccordion}
-                expanded={showAdvancedSettings}
-                onPress={() => setShowAdvancedSettings(!showAdvancedSettings)}>
+                titleStyle={[
+                  styles.accordionTitle,
+                  !advancedUnlocked && {opacity: 0.4},
+                ]}
+                style={[
+                  styles.advancedAccordion,
+                  !advancedUnlocked && {opacity: 0.5},
+                ]}
+                left={
+                  advancedUnlocked
+                    ? undefined
+                    : props => <List.Icon {...props} icon="lock" />
+                }
+                expanded={advancedUnlocked && showAdvancedSettings}
+                onPress={() => {
+                  if (!advancedUnlocked) {
+                    setShowUnlockDialog(true);
+                    return;
+                  }
+                  setShowAdvancedSettings(!showAdvancedSettings);
+                }}>
                 <View style={styles.advancedSettingsContent}>
                   {/* Batch Size Slider */}
                   <View style={styles.settingItemContainer}>
@@ -1745,6 +1766,15 @@ export const SettingsScreen: React.FC = observer(() => {
         providerId={activeSearchProviderId}
         providerLabel={activeSearchProvider?.label ?? activeSearchProviderId}
         onDismiss={() => setShowSearchKeySheet(false)}
+      />
+      <AdvancedUnlockDialog
+        visible={showUnlockDialog}
+        onDismiss={() => setShowUnlockDialog(false)}
+        onUnlock={() => {
+          setAdvancedUnlocked(true);
+          setShowUnlockDialog(false);
+          setShowAdvancedSettings(true);
+        }}
       />
       {showAuthSheet && (
         <AuthSheet
