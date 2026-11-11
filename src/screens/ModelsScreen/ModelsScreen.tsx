@@ -14,7 +14,6 @@ import {useTheme} from '../../hooks';
 import {FABGroup} from './FABGroup';
 import {ModelCard} from './ModelCard';
 import {createStyles} from './styles';
-import {HFModelSearch} from './HFModelSearch';
 import {ModelAccordion} from './ModelAccordion';
 import {
   DownloadErrorDialog,
@@ -35,7 +34,6 @@ import {ErrorState} from '../../utils/errors';
 export const ModelsScreen: React.FC = observer(() => {
   const l10n = useContext(L10nContext);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-  const [hfSearchVisible, setHFSearchVisible] = useState(false);
   const [isCopyingModel, setIsCopyingModel] = useState(false);
   const [selectedModel, setSelectedModel] = useState<Model | undefined>();
   const [settingsVisible, setSettingsVisible] = useState(false);
@@ -268,7 +266,13 @@ export const ModelsScreen: React.FC = observer(() => {
   };
 
   const activeModelId = modelStore.activeModel?.id;
-  const models = modelStore.displayModels;
+  // StudyMate: the Models screen only lists models that are ready to use
+  // (downloaded, imported from the phone, or remote) plus any download that is
+  // currently in progress. Browsing and downloading new models lives under
+  // Settings > Advanced settings, behind the access code.
+  const models = modelStore.displayModels.filter(
+    model => model.isDownloaded || modelStore.isDownloading(model.id),
+  );
 
   // useMemo uses shallow comaprison for dependencies,
   // so we use computed instead for deep comparison
@@ -432,10 +436,6 @@ export const ModelsScreen: React.FC = observer(() => {
         />
       </Portal>
 
-      <HFModelSearch
-        visible={hfSearchVisible}
-        onDismiss={() => setHFSearchVisible(false)}
-      />
       <Snackbar
         testID="copy-model-snackbar"
         visible={isCopyingModel}
@@ -444,7 +444,6 @@ export const ModelsScreen: React.FC = observer(() => {
         {l10n.models.fileManagement.copyingModel}
       </Snackbar>
       <FABGroup
-        onAddHFModel={() => setHFSearchVisible(true)}
         onAddLocalModel={handleAddLocalModel}
         onAddRemoteModel={handleAddRemoteModel}
         onManageServers={handleManageServers}
