@@ -3,10 +3,9 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "org.jetbrains.kotlin.kapt"
 apply plugin: "com.facebook.react"
 
-// Add the Google Services plugin dependency
-// This is used exclusively for sending benchmarks (with user consent) to Hugging Face Spaces via Firebase.
-// Firebase is used for App Check functionality, allowing unauthenticated users to submit their benchmark data securely.
-apply plugin: "com.google.gms.google-services"
+// StudyMate: the Google Services plugin (Firebase) has been removed, so no
+// google-services.json is needed. Firebase was only used upstream to send
+// benchmarks to Hugging Face Spaces; the JS side is stubbed in src/utils/fb.ts.
 
 apply from: "../../node_modules/react-native-config/android/dotenv.gradle"
 
@@ -222,8 +221,10 @@ dependencies {
         implementation jscFlavor
     }
 
-    // The Firebase Android BoM (Bill of Materials) lets you manage all your Firebase library versions 
-    // by specifying only one version — the BoM's version.
+    // Firebase libraries are kept ONLY so the (now unused) @react-native-firebase
+    // native modules still compile. Nothing in StudyMate's JS calls them. Once you
+    // have removed @react-native-firebase/app and @react-native-firebase/app-check
+    // from package.json (yarn remove ...), these three lines can be deleted too.
     implementation platform('com.google.firebase:firebase-bom:34.4.0')
     implementation 'com.google.firebase:firebase-appcheck-playintegrity'
     implementation 'com.google.firebase:firebase-appcheck-debug'
