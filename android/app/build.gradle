@@ -3,9 +3,14 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "org.jetbrains.kotlin.kapt"
 apply plugin: "com.facebook.react"
 
-// StudyMate: the Google Services plugin (Firebase) has been removed, so no
-// google-services.json is needed. Firebase was only used upstream to send
-// benchmarks to Hugging Face Spaces; the JS side is stubbed in src/utils/fb.ts.
+// StudyMate: Firebase is not used by the app (the JS side is stubbed in
+// src/utils/fb.ts), but the native Firebase modules are still compiled in and
+// start automatically at launch. They need a google-services.json, which this
+// plugin turns into resources. The file in android/app/ is a placeholder for
+// com.benwalker.studymate, so Firebase starts quietly and does nothing.
+// Once @react-native-firebase is removed from package.json, delete this plugin
+// line, the placeholder google-services.json and the Firebase dependencies below.
+apply plugin: "com.google.gms.google-services"
 
 apply from: "../../node_modules/react-native-config/android/dotenv.gradle"
 
@@ -14,49 +19,6 @@ apply from: "../../node_modules/react-native-config/android/dotenv.gradle"
  * By default you don't need to apply any configuration, just uncomment the lines you need.
  */
 react {
-    /* Folders */
-    //   The root of your project, i.e. where "package.json" lives. Default is '../..'
-    // root = file("../../")
-    //   The folder where the react-native NPM package is. Default is ../../node_modules/react-native
-    // reactNativeDir = file("../../node_modules/react-native")
-    //   The folder where the react-native Codegen package is. Default is ../../node_modules/@react-native/codegen
-    // codegenDir = file("../../node_modules/@react-native/codegen")
-    //   The cli.js file which is the React Native CLI entrypoint. Default is ../../node_modules/react-native/cli.js
-    // cliFile = file("../../node_modules/react-native/cli.js")
-
-    /* Variants */
-    //   The list of variants to that are debuggable. For those we're going to
-    //   skip the bundling of the JS bundle and the assets. By default is just 'debug'.
-    //   If you add flavors like lite, prod, etc. you'll have to list your debuggableVariants.
-    // debuggableVariants = ["liteDebug", "prodDebug"]
-
-    /* Bundling */
-    //   A list containing the node command and its flags. Default is just 'node'.
-    // nodeExecutableAndArgs = ["node"]
-    //
-    //   The command to run when bundling. By default is 'bundle'
-    // bundleCommand = "ram-bundle"
-    //
-    //   The path to the CLI configuration file. Default is empty.
-    // bundleConfig = file(../rn-cli.config.js)
-    //
-    //   The name of the generated asset file containing your JS bundle
-    // bundleAssetName = "MyApplication.android.bundle"
-    //
-    //   The entry file for bundle generation. Default is 'index.android.js' or 'index.js'
-    // entryFile = file("../js/MyApplication.android.js")
-    //
-    //   A list of extra flags to pass to the 'bundle' commands.
-    //   See https://github.com/react-native-community/cli/blob/main/docs/commands.md#bundle
-    // extraPackagerArgs = []
-
-    /* Hermes Commands */
-    //   The hermes compiler command to run. By default it is 'hermesc'
-    // hermesCommand = "$rootDir/my-custom-hermesc/bin/hermesc"
-    //
-    //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
-    // hermesFlags = ["-O", "-output-source-map"]
-
     /* Autolinking */
     autolinkLibrariesWithApp()
 }
@@ -221,10 +183,7 @@ dependencies {
         implementation jscFlavor
     }
 
-    // Firebase libraries are kept ONLY so the (now unused) @react-native-firebase
-    // native modules still compile. Nothing in StudyMate's JS calls them. Once you
-    // have removed @react-native-firebase/app and @react-native-firebase/app-check
-    // from package.json (yarn remove ...), these three lines can be deleted too.
+    // Firebase native libraries (see the note at the top of this file).
     implementation platform('com.google.firebase:firebase-bom:34.4.0')
     implementation 'com.google.firebase:firebase-appcheck-playintegrity'
     implementation 'com.google.firebase:firebase-appcheck-debug'
@@ -276,4 +235,3 @@ project.ext.vectoricons = [
 ]
 
 apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
-
