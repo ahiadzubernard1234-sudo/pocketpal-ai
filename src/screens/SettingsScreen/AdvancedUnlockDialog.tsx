@@ -49,12 +49,20 @@ export const AdvancedUnlockDialog: React.FC<AdvancedUnlockDialogProps> = ({
       transparent
       animationType="fade"
       onRequestClose={onDismiss}>
-      <Pressable style={styles.backdrop} onPress={onDismiss}>
+      <Pressable
+        style={styles.backdrop}
+        onPress={onDismiss}
+        accessible={false}
+        importantForAccessibility="no">
         {/* Inner Pressable swallows taps so touching the card doesn't dismiss */}
         <Pressable
           style={[styles.card, {backgroundColor: theme.colors.surface}]}
+          accessible={false}
           onPress={() => {}}>
-          <Text variant="titleMedium" style={{color: theme.colors.onSurface}}>
+          <Text
+            variant="titleMedium"
+            accessibilityRole="header"
+            style={{color: theme.colors.onSurface}}>
             Advanced settings
           </Text>
           <Text
@@ -64,6 +72,8 @@ export const AdvancedUnlockDialog: React.FC<AdvancedUnlockDialogProps> = ({
           </Text>
           <TextInput
             testID="advanced-unlock-input"
+            accessibilityLabel="Access code"
+            accessibilityHint="Enter the four digit access code, then choose Unlock"
             value={code}
             onChangeText={text => {
               setCode(text.replace(/[^0-9]/g, ''));
@@ -90,6 +100,8 @@ export const AdvancedUnlockDialog: React.FC<AdvancedUnlockDialogProps> = ({
             <Text
               variant="labelSmall"
               testID="advanced-unlock-error"
+              accessibilityLiveRegion="polite"
+              accessibilityRole="alert"
               style={{color: theme.colors.error}}>
               Incorrect code. Try again.
             </Text>
