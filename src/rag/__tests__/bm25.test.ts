@@ -44,6 +44,27 @@ describe('Bm25Index', () => {
     expect(hits[0].chunk.id).toBe('econ-1');
   });
 
+  it('can search by a word that only appears in the source file name', () => {
+    const withSource = new Bm25Index([
+      {
+        id: 'maths-1',
+        subject: 'Mathematics',
+        source: 'Elective Mathematics Syllabus.pdf',
+        text: 'Quadratic equations can be solved by factorising.',
+      },
+      ...chunks,
+    ]);
+    const hits = withSource.search('syllabus');
+    expect(hits[0].chunk.id).toBe('maths-1');
+  });
+
+  it('does not index the file extension', () => {
+    const withSource = new Bm25Index([
+      {id: 'a', source: 'Notes.pdf', text: 'Quadratic equations.'},
+    ]);
+    expect(withSource.search('pdf')).toEqual([]);
+  });
+
   it('returns nothing for unrelated questions', () => {
     expect(index.search('football world cup winners')).toEqual([]);
   });

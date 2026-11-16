@@ -1,19 +1,21 @@
 # StudyMate
 
-**An offline AI tutor for Ghanaian Senior High School (SHS) students, running entirely on the phone.**
+**An offline AI tutor for Ghanaian Senior High School (SHS) students, running on the phone.**
 
-StudyMate helps SHS students understand their lessons and prepare for exams without needing internet data. Everything runs on the device: no account, no cloud, and no data leaving the phone.
+StudyMate helps SHS students understand their lessons and prepare for exams without needing internet data. The model runs on the device: no account is needed and no chat is sent to a cloud service.
+
+A few optional features do use the internet, and only when someone switches them on: downloading models from Hugging Face, web search (your chosen search provider receives the query) and remote model servers. Both the model download and web search controls are locked behind an access code in Settings.
 
 ## Aim
 
 Many students have a phone but limited or expensive internet access. StudyMate aims to put a patient, always-available tutor in their pocket:
 
-- **Works offline.** Once the model is on the phone, no connection is needed.
+- **Works offline.** Once the model is on the phone, no connection is needed to chat.
 - **Built for modest phones.** The target is a small fine-tuned language model (Qwen3-0.6B, quantized to GGUF) that runs on Android phones with as little as 4 GB of RAM.
 - **Made for the Ghana SHS curriculum.** Subjects include Mathematics, English, Integrated Science, Physics, Chemistry, Biology, Economics, Geography, Government, History, ICT, Financial Accounting, Business Management and Social Studies.
 - **Teaches, not just answers.** The default tutor prompt explains step by step, uses everyday Ghanaian examples, checks understanding, and admits when it is unsure.
 
-> **Status:** work in progress. The app shell and tutor behaviour are in place; the fine-tuned StudyMate model is still being trained and tested, and models are currently imported locally from the phone's storage.
+> **Status:** work in progress. The app shell and tutor behaviour are in place. The fine-tuned StudyMate model is still being trained and tested, and models are currently imported from the phone's storage. Curriculum search (RAG) is built, but the bundled notes file is empty until you add your curriculum (see [docs/RAG.md](docs/RAG.md)), so it does nothing yet.
 
 ## Acknowledgement and credit
 
@@ -27,11 +29,12 @@ PocketPal in turn builds on the open-source community, including [llama.cpp](htt
 
 - **Rebranded** as StudyMate, with Android package ID `com.benwalker.studymate`.
 - **Default tutor prompt.** When no Pal is active and the model has no system prompt of its own, StudyMate uses a tutor prompt for Ghanaian SHS students (`src/utils/studymatePrompt.ts`).
-- **Advanced model settings are locked.** They are greyed out in Settings and open with an access code, so students don't change them by accident. This is a convenience guard, not security.
-- **Firebase removed.** Upstream used Firebase App Check only to send optional benchmarks and feedback online. StudyMate stubs this out (`src/utils/fb.ts`) and does not need `google-services.json`.
-- **Local models.** Models are imported from the phone's storage for now.
+- **Locked settings.** Advanced settings, model downloads and Internet Search are greyed out in Settings and open with an access code, so students don't change them by accident. This is a convenience guard, not security: the code ships inside the app.
+- **Curriculum search (RAG).** Matching curriculum passages are added to the prompt for each question (`src/rag/`). The notes file is empty until you generate one.
+- **Firebase is not used.** Upstream used Firebase App Check only to send optional benchmarks and feedback online. StudyMate stubs this out in JavaScript (`src/utils/fb.ts`). Upstream's native Firebase libraries are still compiled in and start with the app, so the Android build still applies the Google Services plugin and includes a **placeholder** `android/app/google-services.json` for `com.benwalker.studymate`. It contains no real Firebase project. The clean-up is to remove the `@react-native-firebase` packages, the plugin and that file together.
+- **Local models.** Models are imported from the phone's storage; downloading from Hugging Face is available under Advanced settings.
 
-Everything else, such as Pals, voice features and Hugging Face downloads, is inherited from PocketPal and still present in the code.
+Everything else, such as Pals, voice features and remote servers, is inherited from PocketPal and still present in the code.
 
 ## For developers
 
@@ -78,8 +81,9 @@ If you change `package.json`, a native module, or anything under `android/`, reb
 - App icon and splash images still use PocketPal artwork (binary assets, to be replaced).
 - iOS name and bundle ID have not been changed yet.
 - The first-run onboarding still offers PocketPal's sample Pals and model downloads.
-- Some existing tests need updating for the locked Advanced settings and the new default prompt.
-- `@react-native-firebase` packages are still listed in `package.json`; see the note in `android/app/build.gradle`.
+- The Android E2E tests (`e2e/`) and the E2E workflow (`.github/workflows/e2e-tests.yml`) still refer to the old `com.pocketpalai` package. The Play Store upload lane now names `com.benwalker.studymate` but needs its own Play Console listing and key before it can be used.
+- Some existing tests (Settings, Models, chat session) still expect PocketPal's behaviour and need updating for the locks and the default prompt.
+- New Settings text is English only and is not yet in `src/locales/en.json`.
 
 ## License
 

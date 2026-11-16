@@ -9,7 +9,9 @@ const MAX_TOTAL_CHARS = 1400;
 const INSTRUCTION =
   "Curriculum notes for the student's latest question are below. " +
   'Base your answer on these notes when they are relevant. ' +
-  'If they do not cover the question, say so briefly, then answer carefully from general knowledge.';
+  'When you use a note, say where it came from in plain words, for example "According to the Integrated Science notes, page 12". ' +
+  'Only mention sources that appear in the notes below, and never invent page numbers. ' +
+  'If the notes do not cover the question, say so briefly, then answer carefully from general knowledge.';
 
 /**
  * Builds the extra system-prompt text for a question, or null when nothing
@@ -33,10 +35,11 @@ export function buildRagFragment(question: string): string | null {
     if (remaining <= 0) {
       return;
     }
+    // Written the way the model should quote it, e.g.
+    // "Integrated Science notes, page 12".
     const label = [
-      chunk.subject,
-      chunk.source,
-      chunk.page != null ? `p. ${chunk.page}` : undefined,
+      chunk.subject ? `${chunk.subject} notes` : chunk.source,
+      chunk.page != null ? `page ${chunk.page}` : undefined,
     ]
       .filter(Boolean)
       .join(', ');

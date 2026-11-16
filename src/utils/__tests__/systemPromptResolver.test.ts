@@ -3,6 +3,7 @@ import {
   resolveSystemPrompt,
   resolveSystemMessages,
 } from '../systemPromptResolver';
+import {STUDYMATE_TUTOR_PROMPT} from '../studymatePrompt';
 import type {Pal} from '../../types/pal';
 import type {Model} from '../types';
 
@@ -89,16 +90,16 @@ describe('systemPromptResolver', () => {
       expect(result).toBe('Model default system prompt');
     });
 
-    it('should return empty string when no pal and no model system prompt', () => {
+    it('should return the StudyMate tutor prompt when no pal and no model system prompt', () => {
       const result = resolveSystemPrompt({
         pal: null,
         model: null,
       });
 
-      expect(result).toBe('');
+      expect(result).toBe(STUDYMATE_TUTOR_PROMPT);
     });
 
-    it('should return empty string when model has no chat template', () => {
+    it('should return the StudyMate tutor prompt when model has no chat template', () => {
       const activeModel: Partial<Model> = {
         chatTemplate: undefined,
       };
@@ -108,7 +109,64 @@ describe('systemPromptResolver', () => {
         model: activeModel as Model,
       });
 
-      expect(result).toBe('');
+      expect(result).toBe(STUDYMATE_TUTOR_PROMPT);
+    });
+
+    it('should return the StudyMate tutor prompt when the pal and model prompts are both empty', () => {
+      const pal: Partial<Pal> = {
+        systemPrompt: '',
+      };
+
+      const activeModel: Partial<Model> = {
+        chatTemplate: {
+          systemPrompt: '',
+          addGenerationPrompt: false,
+          name: '',
+          bosToken: '',
+          eosToken: '',
+          chatTemplate: '',
+        },
+      };
+
+      const result = resolveSystemPrompt({
+        pal: pal as Pal,
+        model: activeModel as Model,
+      });
+
+      expect(result).toBe(STUDYMATE_TUTOR_PROMPT);
+    });
+
+    it('should prefer the model system prompt over the StudyMate tutor prompt', () => {
+      const activeModel: Partial<Model> = {
+        chatTemplate: {
+          systemPrompt: 'Model system prompt',
+          addGenerationPrompt: false,
+          name: '',
+          bosToken: '',
+          eosToken: '',
+          chatTemplate: '',
+        },
+      };
+
+      const result = resolveSystemPrompt({
+        pal: null,
+        model: activeModel as Model,
+      });
+
+      expect(result).toBe('Model system prompt');
+      expect(result).not.toBe(STUDYMATE_TUTOR_PROMPT);
+    });
+
+    it('should prefer a pal system prompt over the StudyMate tutor prompt', () => {
+      const pal: Partial<Pal> = {
+        systemPrompt: 'Pal system prompt',
+        parameters: {},
+      };
+
+      const result = resolveSystemPrompt({pal: pal as Pal, model: null});
+
+      expect(result).toBe('Pal system prompt');
+      expect(result).not.toBe(STUDYMATE_TUTOR_PROMPT);
     });
 
     it('should prioritize pal system prompt over model system prompt', () => {
@@ -154,16 +212,21 @@ describe('systemPromptResolver', () => {
       ]);
     });
 
-    it('should return empty array when system prompt is empty', () => {
+    it('should return the StudyMate tutor prompt as the system message when nothing else is set', () => {
       const result = resolveSystemMessages({
         pal: null,
         model: null,
       });
 
-      expect(result).toEqual([]);
+      expect(result).toEqual([
+        {
+          role: 'system',
+          content: STUDYMATE_TUTOR_PROMPT,
+        },
+      ]);
     });
 
-    it('should return empty array when system prompt is whitespace only', () => {
+    it('should return empty array when the model system prompt is whitespace only', () => {
       const activeModel: Partial<Model> = {
         chatTemplate: {
           systemPrompt: '   \n\t  ',

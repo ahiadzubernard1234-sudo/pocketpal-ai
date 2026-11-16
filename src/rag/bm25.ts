@@ -22,12 +22,67 @@ export interface SearchHit {
 }
 
 const STOPWORDS = new Set([
-  'a', 'an', 'and', 'are', 'as', 'at', 'be', 'been', 'but', 'by', 'can',
-  'did', 'do', 'does', 'for', 'from', 'had', 'has', 'have', 'how', 'i', 'if',
-  'in', 'is', 'it', 'its', 'me', 'my', 'of', 'on', 'or', 'our', 'so', 'than',
-  'that', 'the', 'their', 'them', 'then', 'there', 'these', 'they', 'this',
-  'to', 'was', 'we', 'were', 'what', 'when', 'where', 'which', 'who', 'why',
-  'will', 'with', 'you', 'your', 'explain', 'please', 'tell', 'about',
+  'a',
+  'an',
+  'and',
+  'are',
+  'as',
+  'at',
+  'be',
+  'been',
+  'but',
+  'by',
+  'can',
+  'did',
+  'do',
+  'does',
+  'for',
+  'from',
+  'had',
+  'has',
+  'have',
+  'how',
+  'i',
+  'if',
+  'in',
+  'is',
+  'it',
+  'its',
+  'me',
+  'my',
+  'of',
+  'on',
+  'or',
+  'our',
+  'so',
+  'than',
+  'that',
+  'the',
+  'their',
+  'them',
+  'then',
+  'there',
+  'these',
+  'they',
+  'this',
+  'to',
+  'was',
+  'we',
+  'were',
+  'what',
+  'when',
+  'where',
+  'which',
+  'who',
+  'why',
+  'will',
+  'with',
+  'you',
+  'your',
+  'explain',
+  'please',
+  'tell',
+  'about',
 ]);
 
 /** Very light English stemmer so "plants", "plant" and "planting" match. */
@@ -89,11 +144,13 @@ export class Bm25Index {
     let totalLength = 0;
 
     chunks.forEach((chunk, docIndex) => {
-      // Searching by subject/source name too lets "physics ohm's law" find
-      // passages from the Physics notes.
-      const tokens = tokenize(
-        `${chunk.subject ?? ''} ${chunk.text}`,
-      );
+      // Search the subject and the source file name as well as the passage, so
+      // "physics ohm's law" can find passages from the Physics notes.
+      const sourceName = chunk.source?.replace(/\.[a-z0-9]+$/i, '');
+      const searchable = [chunk.subject, sourceName, chunk.text]
+        .filter(Boolean)
+        .join(' ');
+      const tokens = tokenize(searchable);
       this.docLengths.push(tokens.length);
       totalLength += tokens.length;
 

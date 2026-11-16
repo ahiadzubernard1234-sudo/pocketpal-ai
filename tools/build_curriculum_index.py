@@ -16,6 +16,8 @@ Name each PDF after its subject, e.g. "Integrated Science.pdf" or
 
 Note: this only works on PDFs that contain real text. Scanned (photo) PDFs
 need OCR first.
+
+Tests: from the tools folder, run  python -m unittest
 """
 
 import json
@@ -23,10 +25,8 @@ import re
 import sys
 from pathlib import Path
 
-from pypdf import PdfReader
-
 TARGET_CHARS = 800   # aim for passages about this long
-MAX_CHARS = 1100     # never go beyond this
+MAX_CHARS = 1100     # hard limit: no passage is ever longer than this
 MIN_CHARS = 120      # drop tiny fragments (page numbers, headings)
 
 
@@ -42,24 +42,51 @@ def split_sentences(text: str):
     return [s.strip() for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()]
 
 
+def split_long(sentence: str):
+    """Break a sentence longer than MAX_CHARS into pieces, cutting at spaces."""
+    pieces = []
+    while len(sentence) > MAX_CHARS:
+        cut = sentence.rfind(" ", 0, MAX_CHARS)
+        if cut <= 0:                       # one enormous word: cut it anyway
+            cut = MAX_CHARS
+        pieces.append(sentence[:cut].strip())
+        sentence = sentence[cut:].strip()
+    if sentence:
+        pieces.append(sentence)
+    return pieces
+
+
 def make_chunks(text: str):
-    """Pack sentences into passages, repeating the last sentence as overlap."""
-    chunks, current = [], []
-    length = 0
+    """Pack sentences into passages of about TARGET_CHARS, never over MAX_CHARS.
+
+    The last sentence of each passage is repeated at the start of the next one
+    ("overlap") so an idea that straddles a boundary is not lost. The overlap is
+    dropped when it would push the next passage over MAX_CHARS.
+    """
+    sentences = []
     for sentence in split_sentences(text):
-        sentence = sentence[:MAX_CHARS]
-        if current and length + len(sentence) > TARGET_CHARS:
+        sentences.extend(split_long(sentence))
+
+    chunks, current, new_count = [], [], 0
+    for sentence in sentences:
+        if new_count and len(" ".join(current)) + 1 + len(sentence) > TARGET_CHARS:
             chunks.append(" ".join(current))
-            current = [current[-1]]            # overlap
-            length = len(current[0])
+            overlap = current[-1]
+            fits = len(overlap) + 1 + len(sentence) <= MAX_CHARS
+            current = [overlap] if fits else []
+            new_count = 0
         current.append(sentence)
-        length += len(sentence) + 1
-    if current:
+        new_count += 1
+    if new_count:
         chunks.append(" ".join(current))
+
     return [c for c in chunks if len(c) >= MIN_CHARS]
 
 
 def main():
+    # Imported here so the tests can run without pypdf installed.
+    from pypdf import PdfReader
+
     if len(sys.argv) != 3:
         print(__doc__)
         sys.exit(1)
