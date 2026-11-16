@@ -506,6 +506,11 @@ export const SettingsScreen: React.FC = observer(() => {
               <List.Accordion
                 testID="advanced-settings-accordion"
                 title={l10n.settings.advancedSettings}
+                accessibilityLabel={
+                  advancedUnlocked
+                    ? undefined
+                    : `${l10n.settings.advancedSettings}, locked. Double tap to enter the access code.`
+                }
                 titleStyle={[
                   styles.accordionTitle,
                   !advancedUnlocked && {opacity: 0.4},
@@ -1425,12 +1430,24 @@ export const SettingsScreen: React.FC = observer(() => {
           </Card>
 
           {/* Internet Search (greyed out until unlocked with the access code).
-              While locked, the content ignores touches and tapping anywhere on
-              the card asks for the code. */}
+              While locked, the whole card is one accessible button that asks
+              for the code; its controls are hidden from screen readers and
+              ignore touches. */}
           <TouchableOpacity
             activeOpacity={1}
             disabled={advancedUnlocked}
-            accessible={false}
+            accessible={!advancedUnlocked}
+            accessibilityRole={advancedUnlocked ? undefined : 'button'}
+            accessibilityLabel={
+              advancedUnlocked
+                ? undefined
+                : `${l10n.settings.internetSearch.title}, locked`
+            }
+            accessibilityHint={
+              advancedUnlocked
+                ? undefined
+                : 'Double tap to enter the access code and unlock these settings'
+            }
             testID="internet-search-lock-wrapper"
             onPress={() => {
               setExpandAfterUnlock(false);
@@ -1449,7 +1466,12 @@ export const SettingsScreen: React.FC = observer(() => {
                 }
               />
               <Card.Content>
-                <View pointerEvents={advancedUnlocked ? 'auto' : 'none'}>
+                <View
+                  pointerEvents={advancedUnlocked ? 'auto' : 'none'}
+                  importantForAccessibility={
+                    advancedUnlocked ? 'auto' : 'no-hide-descendants'
+                  }
+                  accessibilityElementsHidden={!advancedUnlocked}>
                   <View style={styles.settingItemContainer}>
                     <Text variant="labelSmall" style={styles.textDescription}>
                       {l10n.settings.internetSearch.description}
